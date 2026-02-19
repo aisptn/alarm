@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Clock</title>
+    <style>
+        :root {
+            --color-white: white;
+            --color-black: black;
+            --color-muted: gray;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--color-black);
+            color: var(--color-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            background: var(--color-black);
+            border: 1px solid var(--color-muted);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: normal;
+            margin-bottom: 2rem;
+            color: var(--color-muted);
+            border-bottom: 1px solid var(--color-muted);
+            padding-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        #current-time {
+            font-size: 3.5rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            letter-spacing: 0.1em;
+            color: var(--color-white);
+        }
+
+        #current-date {
+            text-align: center;
+            color: var(--color-muted);
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .section-label {
+            color: var(--color-muted);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+
+        .alarm-set {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="time"] {
+            flex: 1;
+            background: var(--color-black);
+            border: 1px solid var(--color-muted);
+            color: var(--color-white);
+            padding: 0.6rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            border-radius: 0;
+            outline: none;
+        }
+
+        input[type="time"]:focus {
+            border-color: var(--color-white);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: var(--color-black);
+            border: 1px solid var(--color-muted);
+            color: var(--color-white);
+            padding: 0.5rem 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-radius: 0;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--color-white);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--color-muted);
+        }
+
+        button {
+            background: var(--color-black);
+            border: 1px solid var(--color-muted);
+            color: var(--color-white);
+            padding: 0.6rem 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 0;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        button:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+
+        button.active {
+            border-color: var(--color-white);
+            color: var(--color-black);
+            background: var(--color-white);
+        }
+
+        button.stop {
+            border-color: var(--color-muted);
+            color: var(--color-white);
+            background: var(--color-muted);
+        }
+
+        .alarms-list {
+            margin-top: 2rem;
+            border-top: 1px solid var(--color-muted);
+            padding-top: 1rem;
+        }
+
+        .alarm-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--color-muted);
+        }
+
+        .alarm-item .time {
+            font-size: 1.3rem;
+            color: var(--color-white);
+        }
+
+        .alarm-item .label {
+            color: var(--color-muted);
+            font-size: 0.75rem;
+            margin-left: 0.8rem;
+        }
+
+        .alarm-item .controls {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        .alarm-item button {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .toggle-select {
+            display: flex;
+            border: 1px solid var(--color-muted);
+            border-radius: 0;
+            overflow: hidden;
+        }
+
+        .toggle-select button {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border: none;
+            background: var(--color-black);
+            color: var(--color-muted);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .toggle-select button.selected {
+            background: var(--color-white);
+            color: var(--color-black);
+        }
+
+        .toggle-select button:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+
+        .toggle-select button.selected:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+
+        .empty {
+            color: var(--color-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+
+        .ringing {
+            animation: flash 0.5s infinite alternate;
+        }
+
+        @keyframes flash {
+            from {
+                color: var(--color-white);
+            }
+
+            to {
+                color: var(--color-muted);
+            }
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--color-black);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay .alarm-msg {
+            font-size: 1rem;
+            color: var(--color-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .overlay .alarm-time {
+            font-size: 4rem;
+            color: var(--color-white);
+            animation: flash 0.5s infinite alternate;
+            margin-bottom: 0.5rem;
+        }
+
+        .overlay .alarm-label {
+            font-size: 1.1rem;
+            color: var(--color-muted);
+            margin-bottom: 2rem;
+        }
+
+        .overlay button {
+            font-size: 1.2rem;
+            padding: 0.8rem 2.5rem;
+            border-color: var(--color-white);
+            color: var(--color-black);
+            background: var(--color-white);
+        }
+
+        .overlay button:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+
+        .sound-select {
+            display: flex;
+            border: 1px solid var(--color-muted);
+            border-radius: 0;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .sound-select button {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.6rem;
+            border: none;
+            background: var(--color-black);
+            color: var(--color-muted);
+            cursor: pointer;
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .sound-select button.selected {
+            background: var(--color-white);
+            color: var(--color-black);
+        }
+
+        .sound-select button:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+
+        .sound-select button.selected:hover {
+            background: var(--color-muted);
+            color: var(--color-black);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1># alarm clock</h1>
+
+        <div id="current-time">00:00:00</div>
+        <div id="current-date"></div>
+
+        <div class="section-label">set alarm</div>
+        <div class="alarm-set">
+            <input type="time" id="alarm-time" value="07:00">
+            <button onclick="addAlarm()">+ add</button>
+        </div>
+        <input type="text" id="alarm-label" placeholder="label (optional)">
+
+        <div class="section-label">sound</div>
+        <div class="sound-select" id="sound-select">
+            <button class="selected" onclick="selectSound(this,'beep')">beep</button>
+            <button onclick="selectSound(this,'siren')">siren</button>
+            <button onclick="selectSound(this,'melody')">melody</button>
+            <button onclick="selectSound(this,'buzz')">buzz</button>
+            <button onclick="selectSound(this,'random')">random</button>
+        </div>
+
+        <div class="alarms-list">
+            <div class="section-label">alarms</div>
+            <div id="alarms-container">
+                <div class="empty">no alarms set</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="alarm-msg">⏰ ALARM</div>
+        <div class="alarm-time" id="ring-time"></div>
+        <div class="alarm-label" id="ring-label"></div>
+        <button onclick="dismissAlarm()">dismiss</button>
+    </div>
+
+    <script>
+        let alarms = [];
+        let alarmIdCounter = 0;
+        let selectedSound = 'beep';
+        let audioCtx = null;
+        let ringingNodes = [];
+        let ringingInterval = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        function selectSound(btn, sound) {
+            selectedSound = sound;
+            document.querySelectorAll('.sound-select button').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function addAlarm() {
+            const timeInput = document.getElementById('alarm-time');
+            const labelInput = document.getElementById('alarm-label');
+            const time = timeInput.value;
+            if (!time) return;
+
+            alarms.push({
+                id: alarmIdCounter++,
+                time: time,
+                label: labelInput.value.trim(),
+                enabled: true,
+                sound: selectedSound,
+                fired: false
+            });
+
+            labelInput.value = '';
+            renderAlarms();
+            saveAlarms();
+        }
+
+        function removeAlarm(id) {
+            alarms = alarms.filter(a => a.id !== id);
+            renderAlarms();
+            saveAlarms();
+        }
+
+        function toggleAlarm(id) {
+            const alarm = alarms.find(a => a.id === id);
+            if (alarm) {
+                alarm.enabled = !alarm.enabled;
+                alarm.fired = false;
+                renderAlarms();
+                saveAlarms();
+            }
+        }
+
+        function renderAlarms() {
+            const container = document.getElementById('alarms-container');
+            if (alarms.length === 0) {
+                container.innerHTML = '<div class="empty">no alarms set</div>';
+                return;
+            }
+            const sorted = [...alarms].sort((a, b) => a.time.localeCompare(b.time));
+            container.innerHTML = sorted.map(a => `
+      <div class="alarm-item">
+        <div>
+          <span class="time">${a.time}</span>
+          <span class="label">${a.label || ''}</span>
+          <span class="label">[${a.sound}]</span>
+        </div>
+        <div class="controls">
+          <div class="toggle-select">
+            <button class="${a.enabled ? '' : 'selected'}" onclick="toggleAlarm(${a.id})">off</button>
+            <button class="${a.enabled ? 'selected' : ''}" onclick="toggleAlarm(${a.id})">on</button>
+          </div>
+          <button onclick="removeAlarm(${a.id})">×</button>
+        </div>
+      </div>
+    `).join('');
+        }
+
+        function saveAlarms() {
+            try { localStorage.setItem('alarms', JSON.stringify(alarms)); } catch (e) { }
+        }
+
+        function loadAlarms() {
+            try {
+                const data = localStorage.getItem('alarms');
+                if (data) {
+                    alarms = JSON.parse(data);
+                    alarmIdCounter = alarms.reduce((max, a) => Math.max(max, a.id + 1), 0);
+                }
+            } catch (e) { }
+            renderAlarms();
+        }
+
+        // --- Sound Generation ---
+        function playBeep(ctx, dest, startTime) {
+            for (let i = 0; i < 3; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.3, startTime + i * 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.3 + 0.15);
+                osc.connect(gain).connect(dest);
+                osc.start(startTime + i * 0.3);
+                osc.stop(startTime + i * 0.3 + 0.2);
+                ringingNodes.push(osc, gain);
+            }
+        }
+
+        function playSiren(ctx, dest, startTime) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            gain.gain.value = 0.2;
+            osc.frequency.setValueAtTime(400, startTime);
+            osc.frequency.linearRampToValueAtTime(900, startTime + 0.5);
+            osc.frequency.linearRampToValueAtTime(400, startTime + 1.0);
+            osc.connect(gain).connect(dest);
+            osc.start(startTime);
+            osc.stop(startTime + 1.0);
+            ringingNodes.push(osc, gain);
+        }
+
+        function playMelody(ctx, dest, startTime) {
+            const notes = [523, 659, 784, 659, 523, 784];
+            notes.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.25, startTime + i * 0.18);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + i * 0.18 + 0.16);
+                osc.connect(gain).connect(dest);
+                osc.start(startTime + i * 0.18);
+                osc.stop(startTime + i * 0.18 + 0.18);
+                ringingNodes.push(osc, gain);
+            });
+        }
+
+        function playBuzz(ctx, dest, startTime) {
+            for (let i = 0; i < 5; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = 150;
+                gain.gain.setValueAtTime(0.3, startTime + i * 0.2);
+                gain.gain.setValueAtTime(0, startTime + i * 0.2 + 0.1);
+                osc.connect(gain).connect(dest);
+                osc.start(startTime + i * 0.2);
+                osc.stop(startTime + i * 0.2 + 0.15);
+                ringingNodes.push(osc, gain);
+            }
+        }
+
+        function playRandom(ctx, dest, startTime) {
+            // Play 6 random notes with random frequencies and durations
+            for (let i = 0; i < 6; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                // Random waveform
+                const types = ['sine', 'square', 'sawtooth', 'triangle'];
+                osc.type = types[Math.floor(Math.random() * types.length)];
+                // Random frequency between 200 and 1200 Hz
+                osc.frequency.value = 200 + Math.random() * 1000;
+                // Random duration between 0.1 and 0.25s
+                const duration = 0.1 + Math.random() * 0.15;
+                // Random start offset
+                const offset = i * (0.12 + Math.random() * 0.12);
+                gain.gain.setValueAtTime(0.22, startTime + offset);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + offset + duration);
+                osc.connect(gain).connect(dest);
+                osc.start(startTime + offset);
+                osc.stop(startTime + offset + duration);
+                ringingNodes.push(osc, gain);
+            }
+        }
+
+        function startRinging(sound) {
+            const ctx = getAudioCtx();
+            function loop() {
+                const t = ctx.currentTime;
+                switch (sound) {
+                    case 'siren': playSiren(ctx, ctx.destination, t); break;
+                    case 'melody': playMelody(ctx, ctx.destination, t); break;
+                    case 'buzz': playBuzz(ctx, ctx.destination, t); break;
+                    case 'random': playRandom(ctx, ctx.destination, t); break;
+                    default: playBeep(ctx, ctx.destination, t);
+                }
+            }
+            loop();
+            ringingInterval = setInterval(loop, 1500);
+        }
+
+        function stopRinging() {
+            if (ringingInterval) { clearInterval(ringingInterval); ringingInterval = null; }
+            ringingNodes.forEach(n => { try { n.disconnect(); } catch (e) { } });
+            ringingNodes = [];
+        }
+
+        function triggerAlarm(alarm) {
+            alarm.fired = true;
+            document.getElementById('ring-time').textContent = alarm.time;
+            document.getElementById('ring-label').textContent = alarm.label || '';
+            document.getElementById('overlay').classList.add('show');
+            startRinging(alarm.sound);
+        }
+
+        function dismissAlarm() {
+            stopRinging();
+            document.getElementById('overlay').classList.remove('show');
+            // reset fired for next day
+            alarms.forEach(a => { if (a.fired) a.fired = false; });
+            saveAlarms();
+        }
+
+        // --- Clock ---
+        function tick() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('current-time').textContent = `${h}:${m}:${s}`;
+
+            const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            document.getElementById('current-date').textContent =
+                `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+            const currentHM = `${h}:${m}`;
+            const isZeroSec = now.getSeconds() === 0;
+
+            if (isZeroSec) {
+                alarms.forEach(a => {
+                    if (a.enabled && !a.fired && a.time === currentHM) {
+                        triggerAlarm(a);
+                    }
+                });
+            }
+        }
+
+        // reset fired status at the start of each new minute past :01
+        setInterval(() => {
+            const s = new Date().getSeconds();
+            if (s === 1) {
+                alarms.forEach(a => { a.fired = false; });
+            }
+        }, 1000);
+
+        loadAlarms();
+        tick();
+        setInterval(tick, 1000);
+    </script>
+
+</body>
+
+</html>
